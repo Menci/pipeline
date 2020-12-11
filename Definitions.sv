@@ -1,0 +1,6 @@
+`ifndef DEFINITIONS_INCLUDED
+`define DEFINITIONS_INCLUDED
+
+typedef logic [31:0] int_t;
+
+`endif // DEFINITIONS_INCLUDED
