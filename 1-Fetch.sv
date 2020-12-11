@@ -8,6 +8,7 @@
 
 typedef struct packed {
     int_t programCounter;
+    logic programCounterChangedTimes;
     instruction_t instruction;
 } pipeline_result_fetch_t;
 
@@ -25,9 +26,12 @@ module PipelineStageFetch(
     output pipeline_result_fetch_t pipelineResultFetch
 );
 
+logic stall;
 assign stall = stallOnDecode;
 
-int_t programCounter, instructionData;
+int_t programCounter;
+logic programCounterChangedTimes;
+int_t instructionData;
 
 ProgramCounter pc(
     .reset(reset),
@@ -35,7 +39,8 @@ ProgramCounter pc(
     .stall(stall),
     .jumpEnabled(jumpEnabled),
     .jumpValue(jumpValue),
-    .value(programCounter)
+    .value(programCounter),
+    .valueChangedTimes(programCounterChangedTimes)
 );
 
 InstructionMemory im(
@@ -58,6 +63,7 @@ always_ff @ (posedge clock) begin
     else begin
         if (!stall) begin
             pipelineResultFetch.programCounter <= programCounter;
+            pipelineResultFetch.programCounterChangedTimes <= programCounterChangedTimes;
             pipelineResultFetch.instruction <= instruction;
         end
     end

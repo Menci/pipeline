@@ -19,7 +19,7 @@ typedef stage_register_data_t stages_register_data_t [`MAX_STALL_STAGES];
 module HazardUnit(
     input logic reset,
     input logic clock,
-    input int_t programCounter,
+    input logic programCounterChangedTimes,
     input register_id_t registerId,
     input int_t originalData,
     input stages_register_data_t dataFromNextStages,
@@ -30,7 +30,6 @@ module HazardUnit(
 // According to current pipeline state, can we got data forwarded?
 int_t currentForwardedData;
 logic currentStall;
-
 
 always_comb begin
     currentStall = 0;
@@ -55,7 +54,7 @@ end
 
 // We need to save the forwarded data ONCE it finishs stalling. This makes sure that we always have the correct data to forward.
 
-int_t savedProgramCounter;
+logic savedProgramCounterChangedTimes;
 
 // The forwarded data is required on POSEDGE, all input we read to calculate the forwarded data is unstable on POSEDGE.
 // So we calculate the forwarded data on NEGEDGE -- between to POSEDGEs.
@@ -64,16 +63,16 @@ always_ff @ (negedge clock) begin
     if (reset) begin
         forwardedData <= 0;
         stall <= 0;
-        savedProgramCounter <= 32'hffffffff;
+        savedProgramCounterChangedTimes <= 1; // Same as PC module's valueChangedTimes reset value
     end
     else begin
         if (
             // When instruction changes
-            programCounter != savedProgramCounter ||
+            programCounterChangedTimes != savedProgramCounterChangedTimes ||
             // When enter stalling or leave stalling
             currentStall != stall
         ) begin
-            savedProgramCounter <= programCounter;
+            savedProgramCounterChangedTimes <= programCounterChangedTimes;
             forwardedData <= currentForwardedData;
             stall <= currentStall;
         end

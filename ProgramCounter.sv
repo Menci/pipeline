@@ -15,7 +15,8 @@ module ProgramCounter(
     input logic stall,
     input logic jumpEnabled,
     input int_t jumpValue,
-    output int_t value
+    output int_t value,
+    output logic valueChangedTimes
 );
 
 int_t nextValue;
@@ -30,13 +31,16 @@ end
 // On beginning of a cycle
 always_ff @ (posedge clock) begin
     // Initialization
-    if (reset)
+    if (reset) begin
         value <= 32'h00003000 - 4; // It will +4 on first cycle
-    else begin
-        // PC update
-        if (!stall)
-            value <= nextValue;
+        valueChangedTimes <= 1;
     end
+    else
+        // PC update
+        if (!stall) begin
+            value <= nextValue;
+            valueChangedTimes <= !valueChangedTimes;
+        end
 end
 
 // Debugging output

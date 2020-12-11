@@ -9,6 +9,7 @@
 
 typedef struct packed {
     int_t programCounter;
+    logic programCounterChangedTimes;
     instruction_t instruction;
     control_signals_t signals;
     register_read_id_t regReadId;
@@ -43,7 +44,7 @@ assign registerDataFromStages = '{
 HazardUnit hu0(
     .reset(reset),
     .clock(clock),
-    .programCounter(pipelineResultExecuation.programCounter),
+    .programCounterChangedTimes(pipelineResultExecuation.programCounterChangedTimes),
     .registerId(pipelineResultExecuation.regReadId.id1),
     .originalData(pipelineResultExecuation.regData.data1),
     .dataFromNextStages(registerDataFromStages),
@@ -54,7 +55,7 @@ HazardUnit hu0(
 HazardUnit hu1(
     .reset(reset),
     .clock(clock),
-    .programCounter(pipelineResultExecuation.programCounter),
+    .programCounterChangedTimes(pipelineResultExecuation.programCounterChangedTimes),
     .registerId(pipelineResultExecuation.regReadId.id2),
     .originalData(pipelineResultExecuation.regData.data2),
     .dataFromNextStages(registerDataFromStages),
@@ -99,6 +100,7 @@ always_ff @ (posedge clock) begin
         
         if (!stall) begin
             pipelineResultMemory.programCounter <= pipelineResultExecuation.programCounter;
+            pipelineResultMemory.programCounterChangedTimes <= pipelineResultExecuation.programCounterChangedTimes;
             pipelineResultMemory.instruction <= pipelineResultExecuation.instruction;
             pipelineResultMemory.signals <= pipelineResultExecuation.signals;
             pipelineResultMemory.regReadId <= pipelineResultExecuation.regReadId;
