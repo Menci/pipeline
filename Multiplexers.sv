@@ -19,6 +19,8 @@ function int_t selectAluOperandData(
             return {16'b0, instruction.immediate};
         ALU_OPERAND_FROM_IMME_SIGNED:
             return {{16{instruction.immediate[15]}}, instruction.immediate};
+        ALU_OPERAND_FROM_SHIFT_AMOUNT:
+            return {27'b0, instruction.shiftAmount};
         default:
             return 'bx;
     endcase

@@ -116,6 +116,14 @@ always_comb begin
                 jumpEnabled = regData.data1 == regData.data2;
             REG_READ_DATA_NOT_EQUAL:
                 jumpEnabled = regData.data1 != regData.data2;
+            REG_READ_DATA1_LESS_THAN_ZERO:
+                jumpEnabled = $signed(regData.data1) < $signed(0);
+            REG_READ_DATA1_LESS_THAN_OR_EQUAL_TO_ZERO:
+                jumpEnabled = $signed(regData.data1) <= $signed(0);
+            REG_READ_DATA1_GREATER_THAN_ZERO:
+                jumpEnabled = $signed(regData.data1) > $signed(0);
+            REG_READ_DATA1_GREATER_THAN_OR_EQUAL_TO_ZERO:
+                jumpEnabled = $signed(regData.data1) >= $signed(0);
         endcase
 
     // This won't be from alu and dm
@@ -146,8 +154,6 @@ always_ff @ (posedge clock) begin
         pipelineResultDecode.bubbled <= 0;
     end
     else begin
-        $display("Stage 2 (decode)    : %s %s", inspect(pipelineResultFetch.instruction), stall ? "[stalled]" : "");
-
         if (!stall) begin
             pipelineResultDecode.programCounter <= pipelineResultFetch.programCounter;
             pipelineResultDecode.programCounterChangedTimes <= pipelineResultFetch.programCounterChangedTimes;
@@ -198,12 +204,6 @@ always_comb begin
         resultOfInstructionAfterDecode.data = pipelineResultDecode.regDataWrite;
     end
 end
-
-`ifndef SYNTHESIS
-// Debug
-string instructionInfo;
-assign instructionInfo = inspect(pipelineResultFetch.instruction);
-`endif
 
 endmodule
 

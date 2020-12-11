@@ -22,29 +22,16 @@ module PipelineStageWriteBack(
 logic stall;
 assign stall = pipelineResultMemory.bubbled;
 
-always_ff @ (posedge clock)
-    if (reset) begin
-        // Do nothing
-    end else begin
-        $display("Stage 5 (write back): %s %s", inspect(pipelineResultMemory.instruction), stall ? "[stalled]" : "");
-    end
-
 always_comb begin
     regWriteId = pipelineResultMemory.regWriteId;
     regWriteEnabled = !stall && pipelineResultMemory.signals.regWriteEnabled;
     regDataWrite = pipelineResultMemory.regDataWrite;
 end
 
-// syscall instruction
+// // syscall instruction
 always_comb
-    if (pipelineResultMemory.instruction.operationCode == R && pipelineResultMemory.instruction.functionCode == R_SYSCALL)
+    if (pipelineResultMemory.instruction.instructionCode inside {SYSCALL})
         $stop;
-
-`ifndef SYNTHESIS
-// Debug
-string instructionInfo;
-assign instructionInfo = inspect(pipelineResultMemory.instruction);
-`endif
 
 endmodule
 

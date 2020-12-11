@@ -96,8 +96,6 @@ always_ff @ (posedge clock) begin
     if (reset)
         pipelineResultMemory.bubbled <= 0;
     else begin
-        $display("Stage 4 (memory)    : %s %s", inspect(pipelineResultExecuation.instruction), stall ? "[stalled]" : "");
-        
         if (!stall) begin
             pipelineResultMemory.programCounter <= pipelineResultExecuation.programCounter;
             pipelineResultMemory.programCounterChangedTimes <= pipelineResultExecuation.programCounterChangedTimes;
@@ -147,12 +145,6 @@ always_comb begin
         resultOfInstructionAfterMemory.data = pipelineResultMemory.regDataWrite;
     end
 end
-
-`ifndef SYNTHESIS
-// Debug
-string instructionInfo;
-assign instructionInfo = inspect(pipelineResultExecuation.instruction);
-`endif
 
 endmodule
 

@@ -5,86 +5,64 @@
 `include "Decoder.sv"
 
 `ifndef SYNTHESIS
-function string inspect(input instruction_t instruction);
-    casez (instruction.operationCode)
-        R:
-            casez (instruction.functionCode)
-                // rd = rs + rt
-                R_ADDU:
-                    return $sformatf(
-                        "(addu) %s = %s + %s",
-                        instruction.registerD.name(),
-                        instruction.registerS.name(),
-                        instruction.registerT.name()
-                    );
-                R_SUBU:
-                    return $sformatf(
-                        "(subu) %s = %s - %s",
-                        instruction.registerD.name(),
-                        instruction.registerS.name(),
-                        instruction.registerT.name()
-                    );
-                R_JR:
-                    return $sformatf(
-                        "(jr) pc = %s",
-                        instruction.registerS.name()
-                    );
-                R_SYSCALL:
-                    return $sformatf(
-                        "(syscall)"
-                    );
-            endcase
-        ORI:
-            return $sformatf(
-                "(ori) %s = %s | 0x%h",
-                instruction.registerT.name(),
-                instruction.registerS.name(),
-                instruction.immediate
-            );
-        LW:
-            return $sformatf(
-                "(lw) %s = *(%s + 0x%h)",
-                instruction.registerT.name(),
-                instruction.registerS.name(),
-                instruction.immediate
-            );
-        SW:
-            return $sformatf(
-                "(sw) *(%s + 0x%h) = %s",
-                instruction.registerS.name(),
-                instruction.immediate,
-                instruction.registerT.name()
-            );
-        BEQ:
-            return $sformatf(
-                "(beq) %s == %s => PC += 0x%h",
-                instruction.registerS.name(),
-                instruction.registerT.name(),
-                instruction.immediate
-            );
-        BNE:
-            return $sformatf(
-                "(bne) %s != %s => PC += 0x%h",
-                instruction.registerS.name(),
-                instruction.registerT.name(),
-                instruction.immediate
-            );
-        LUI:
-            return $sformatf(
-                "(lui) %s = 0x%h << 16",
-                instruction.registerT.name(),
-                instruction.immediate
-            );
-        JAL:
-            return $sformatf(
-                "(jal) PC = NearJump(PC, 0x%h)",
-                instruction.immediate
-            );
+`define DEBUG_INSTRUCTION_CODE_ENUM
+`endif
+
+`ifdef DEBUG_INSTRUCTION_CODE_ENUM
+function instruction_code_t getInstructionCode(input int_t instructionData);
+    casex (instruction_code_t'(instructionData))
+        ADD:     return ADD;
+        ADDU:    return ADDU;
+        SUB:     return SUB;
+        SUBU:    return SUBU;
+        SLL:     return SLL;
+        SRL:     return SRL;
+        SRA:     return SRA;
+        SLLV:    return SLLV;
+        SRLV:    return SRLV;
+        SRAV:    return SRAV;
+        AND:     return AND;
+        OR:      return OR;
+        XOR:     return XOR;
+        NOR:     return NOR;
+        SLT:     return SLT;
+        SLTU:    return SLTU;
+        MULT:    return MULT;
+        MULTU:   return MULTU;
+        DIV:     return DIV;
+        DIVU:    return DIVU;
+        MFHI:    return MFHI;
+        MTHI:    return MTHI;
+        MFLO:    return MFLO;
+        MTLO:    return MTLO;
+        JR:      return JR;
+        JALR:    return JALR;
+        SYSCALL: return SYSCALL;
+        ADDI:    return ADDI;
+        ADDIU:   return ADDIU;
+        ANDI:    return ANDI;
+        ORI:     return ORI;
+        XORI:    return XORI;
+        SLTI:    return SLTI;
+        SLTIU:   return SLTIU;
+        LUI:     return LUI;
+        BEQ:     return BEQ;
+        BNE:     return BNE;
+        BLEZ:    return BLEZ;
+        BGTZ:    return BGTZ;
+        BGEZ:    return BGEZ;
+        BLTZ:    return BLTZ;
+        J:       return J;
+        JAL:     return JAL;
+        LB:      return LB;
+        LBU:     return LBU;
+        LH:      return LH;
+        LHU:     return LHU;
+        LW:      return LW;
+        SB:      return SB;
+        SH:      return SH;
+        SW:      return SW;
     endcase
-endfunction
-`else
-function logic inspect(input instruction_t instruction);
-    return 0;
 endfunction
 `endif
 

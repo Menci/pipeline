@@ -69,12 +69,6 @@ always_ff @ (posedge clock) begin
     end
 end
 
-`ifndef SYNTHESIS
-// Debug
-string instructionInfo;
-assign instructionInfo = inspect(instruction);
-`endif
-
 endmodule
 
 `endif // PIPELINE_FETCH_INCLUDED

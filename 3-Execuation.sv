@@ -110,8 +110,6 @@ always_ff @ (posedge clock) begin
         pipelineResultExecuation.bubbled <= 0;
     end
     else begin
-        $display("Stage 3 (execuation): %s %s", inspect(pipelineResultDecode.instruction), stall ? "[stalled]" : "");
-
         if (!stall) begin
             pipelineResultExecuation.programCounter <= pipelineResultDecode.programCounter;
             pipelineResultExecuation.programCounterChangedTimes <= pipelineResultDecode.programCounterChangedTimes;
@@ -162,12 +160,6 @@ always_comb begin
         resultOfInstructionAfterExecuation.data = pipelineResultExecuation.regDataWrite;
     end
 end
-
-`ifndef SYNTHESIS
-// Debug
-string instructionInfo;
-assign instructionInfo = inspect(pipelineResultDecode.instruction);
-`endif
 
 endmodule
 
