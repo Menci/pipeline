@@ -17,7 +17,7 @@ typedef struct packed {
     int_t aluResult;
     logic regDataWriteReady;
     int_t regDataWrite;
-    logic forwardStall;
+    logic bubbled;
 } pipeline_result_execuation_t;
 
 module PipelineStageExecuation(
@@ -32,12 +32,12 @@ module PipelineStageExecuation(
 
     output pipeline_result_execuation_t pipelineResultExecuation,
     output logic stallOnExecuation,
+    output logic stallFromExecuation,
     output stage_register_data_t resultOfInstructionAfterExecuation
 );
 
 register_data_read_t regData;
 logic hazardStall [2];
-stall_count_t stallCount;
 
 stages_register_data_t registerDataFromStages;
 assign registerDataFromStages = '{
@@ -52,7 +52,6 @@ HazardUnit hu0(
     .programCounter(pipelineResultDecode.programCounter),
     .registerId(pipelineResultDecode.regReadId.id1),
     .originalData(pipelineResultDecode.regData.data1),
-    .stallCount(stallCount),
     .dataFromNextStages(registerDataFromStages),
     .forwardedData(regData.data1),
     .stall(hazardStall[0])
@@ -64,7 +63,6 @@ HazardUnit hu1(
     .programCounter(pipelineResultDecode.programCounter),
     .registerId(pipelineResultDecode.regReadId.id2),
     .originalData(pipelineResultDecode.regData.data2),
-    .stallCount(stallCount),
     .dataFromNextStages(registerDataFromStages),
     .forwardedData(regData.data2),
     .stall(hazardStall[1])
@@ -73,11 +71,10 @@ HazardUnit hu1(
 // Execuation Stage: Stall
 logic regDataRequired;
 assign regDataRequired = pipelineResultDecode.signals.regDataRequiredStage <= EXECUATION;
-logic stallFromExecuation;
 assign stallFromExecuation = regDataRequired && (hazardStall[0] || hazardStall[1]);
 assign stallOnExecuation = stallFromExecuation;
 logic stall;
-assign stall = stallOnExecuation || pipelineResultDecode.forwardStall;
+assign stall = stallOnExecuation || pipelineResultDecode.bubbled;
 
 int_t aluOperand1;
 assign aluOperand1 = selectAluOperandData(
@@ -104,18 +101,15 @@ ArithmeticLogicUnit alu(
 
 // Pipeline logic
 
+logic passBubble;
+assign passBubble = stallFromExecuation || pipelineResultDecode.bubbled;
+
 always_ff @ (posedge clock) begin
     if (reset) begin
-        stallCount <= 0;
-        pipelineResultExecuation.forwardStall <= 0;
+        pipelineResultExecuation.bubbled <= 0;
     end
     else begin
         $display("Stage 3 (execuation): %s %s", inspect(pipelineResultDecode.instruction), stall ? "[stalled]" : "");
-
-        if (stallFromExecuation)
-            stallCount <= stallCount + 1;
-        else
-            stallCount <= 0;
 
         if (!stall) begin
             pipelineResultExecuation.programCounter <= pipelineResultDecode.programCounter;
@@ -148,16 +142,23 @@ always_ff @ (posedge clock) begin
             end
         end
 
-        pipelineResultExecuation.forwardStall <= stallFromExecuation || pipelineResultDecode.forwardStall;
+        pipelineResultExecuation.bubbled <= passBubble;
     end
 end
 
 // Provide hazard data info
 
 always_comb begin
-    resultOfInstructionAfterExecuation.registerId = pipelineResultExecuation.regWriteId;
-    resultOfInstructionAfterExecuation.dataReady = pipelineResultExecuation.regDataWriteReady;
-    resultOfInstructionAfterExecuation.data = pipelineResultExecuation.regDataWrite;     
+    if (pipelineResultExecuation.bubbled) begin
+        resultOfInstructionAfterExecuation.registerId = ZERO;
+        resultOfInstructionAfterExecuation.dataReady = 1;
+        resultOfInstructionAfterExecuation.data = 0;
+    end
+    else begin
+        resultOfInstructionAfterExecuation.registerId = pipelineResultExecuation.regWriteId;
+        resultOfInstructionAfterExecuation.dataReady = pipelineResultExecuation.regDataWriteReady;
+        resultOfInstructionAfterExecuation.data = pipelineResultExecuation.regDataWrite;
+    end
 end
 
 `ifndef SYNTHESIS

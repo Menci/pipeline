@@ -20,7 +20,7 @@ module PipelineStageWriteBack(
 );
 
 logic stall;
-assign stall = pipelineResultMemory.forwardStall;
+assign stall = pipelineResultMemory.bubbled;
 
 always_ff @ (posedge clock)
     if (reset) begin

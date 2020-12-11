@@ -18,7 +18,7 @@ typedef struct packed {
     register_id_t regWriteId;
     logic regDataWriteReady;
     int_t regDataWrite;
-    logic forwardStall;
+    logic bubbled;
 } pipeline_result_decode_t;
 
 module PipelineStageDecode(
@@ -30,6 +30,7 @@ module PipelineStageDecode(
 
     // From execuation stage
     input logic stallOnExecuation,
+    input logic stallFromExecuation,
     input stage_register_data_t resultOfInstructionAfterExecuation,
 
     // From memory stage
@@ -61,7 +62,6 @@ assign regWriteId = selectRegisterId(signals.regWriteIdFrom, pipelineResultFetch
 
 register_data_read_t regData;
 logic hazardStall [2];
-stall_count_t stallCount;
 
 stages_register_data_t registerDataFromStages;
 assign registerDataFromStages = {
@@ -76,7 +76,6 @@ HazardUnit hu0(
     .programCounter(pipelineResultFetch.programCounter),
     .registerId(regReadId.id1),
     .originalData(regDataRead.data1),
-    .stallCount(stallCount),
     .dataFromNextStages(registerDataFromStages),
     .forwardedData(regData.data1),
     .stall(hazardStall[0])
@@ -88,7 +87,6 @@ HazardUnit hu1(
     .programCounter(pipelineResultFetch.programCounter),
     .registerId(regReadId.id2),
     .originalData(regDataRead.data2),
-    .stallCount(stallCount),
     .dataFromNextStages(registerDataFromStages),
     .forwardedData(regData.data2),
     .stall(hazardStall[1])
@@ -139,18 +137,15 @@ end
 
 // Pipeline logic
 
+logic passBubble;
+assign passBubble = stallFromDecode;
+
 always_ff @ (posedge clock) begin
     if (reset) begin
-        stallCount <= 0;
-        pipelineResultDecode.forwardStall <= 0;
+        pipelineResultDecode.bubbled <= 0;
     end
     else begin
         $display("Stage 2 (decode)    : %s %s", inspect(pipelineResultFetch.instruction), stall ? "[stalled]" : "");
-
-        if (stallFromDecode)
-            stallCount <= stallCount + 1;
-        else
-            stallCount <= 0;
 
         if (!stall) begin
             pipelineResultDecode.programCounter <= pipelineResultFetch.programCounter;
@@ -182,16 +177,24 @@ always_ff @ (posedge clock) begin
             end
         end
 
-        pipelineResultDecode.forwardStall <= stallFromDecode;
+        if (!stallFromExecuation)
+            pipelineResultDecode.bubbled <= passBubble;
     end
 end
 
 // Provide hazard data info
 
 always_comb begin
-    resultOfInstructionAfterDecode.registerId = pipelineResultDecode.regWriteId;
-    resultOfInstructionAfterDecode.dataReady = pipelineResultDecode.regDataWriteReady;
-    resultOfInstructionAfterDecode.data = pipelineResultDecode.regDataWrite;
+    if (pipelineResultDecode.bubbled) begin
+        resultOfInstructionAfterDecode.registerId = ZERO;
+        resultOfInstructionAfterDecode.dataReady = 1;
+        resultOfInstructionAfterDecode.data = 0;
+    end
+    else begin
+        resultOfInstructionAfterDecode.registerId = pipelineResultDecode.regWriteId;
+        resultOfInstructionAfterDecode.dataReady = pipelineResultDecode.regDataWriteReady;
+        resultOfInstructionAfterDecode.data = pipelineResultDecode.regDataWrite;
+    end
 end
 
 `ifndef SYNTHESIS

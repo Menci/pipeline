@@ -22,7 +22,6 @@ module HazardUnit(
     input int_t programCounter,
     input register_id_t registerId,
     input int_t originalData,
-    input stall_count_t stallCount,
     input stages_register_data_t dataFromNextStages,
     output int_t forwardedData,
     output logic stall
@@ -39,15 +38,14 @@ always_comb begin
 
     if (registerId != ZERO)
         for (integer i = 0; i < `MAX_STALL_STAGES; i++)
-            if (i >= stallCount)
-                if (registerId == dataFromNextStages[i].registerId) begin
-                    if (dataFromNextStages[i].dataReady)
-                        currentForwardedData = dataFromNextStages[i].data;
-                    else
-                        currentStall = 1;
+            if (registerId == dataFromNextStages[i].registerId) begin
+                if (dataFromNextStages[i].dataReady)
+                    currentForwardedData = dataFromNextStages[i].data;
+                else
+                    currentStall = 1;
 
-                    break;
-                end
+                break;
+            end
 end
 
 // If we stalled for too long, the instruction (computed after current instruction's decode (aka. read general registers) stage)

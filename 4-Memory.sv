@@ -16,7 +16,7 @@ typedef struct packed {
     register_id_t regWriteId;
     logic regDataWriteReady;
     int_t regDataWrite;
-    logic forwardStall;
+    logic bubbled;
 } pipeline_result_memory_t;
 
 module PipelineStageMemory(
@@ -46,7 +46,6 @@ HazardUnit hu0(
     .programCounter(pipelineResultExecuation.programCounter),
     .registerId(pipelineResultExecuation.regReadId.id1),
     .originalData(pipelineResultExecuation.regData.data1),
-    .stallCount(2'b00),
     .dataFromNextStages(registerDataFromStages),
     .forwardedData(regData.data1),
     .stall(hazardStall[0])
@@ -58,7 +57,6 @@ HazardUnit hu1(
     .programCounter(pipelineResultExecuation.programCounter),
     .registerId(pipelineResultExecuation.regReadId.id2),
     .originalData(pipelineResultExecuation.regData.data2),
-    .stallCount(2'b00),
     .dataFromNextStages(registerDataFromStages),
     .forwardedData(regData.data2),
     .stall(hazardStall[1])
@@ -68,7 +66,7 @@ HazardUnit hu1(
 always_comb 
     assert ((hazardStall[0] || hazardStall[1]) == 0);
 
-assign stall = pipelineResultExecuation.forwardStall;
+assign stall = pipelineResultExecuation.bubbled;
 
 // Data Memory
 
@@ -90,9 +88,12 @@ DataMemory dm(
 
 // Pipeline logic
 
+logic passBubble;
+assign passBubble = pipelineResultExecuation.bubbled;
+
 always_ff @ (posedge clock) begin
     if (reset)
-        pipelineResultMemory.forwardStall = 0;
+        pipelineResultMemory.bubbled <= 0;
     else begin
         $display("Stage 4 (memory)    : %s %s", inspect(pipelineResultExecuation.instruction), stall ? "[stalled]" : "");
         
@@ -126,16 +127,23 @@ always_ff @ (posedge clock) begin
             end
         end
 
-        pipelineResultMemory.forwardStall <= pipelineResultExecuation.forwardStall;
+        pipelineResultMemory.bubbled <= passBubble;
     end
 end
 
 // Provide hazard data info
 
 always_comb begin
-    resultOfInstructionAfterMemory.registerId = pipelineResultMemory.regWriteId;
-    resultOfInstructionAfterMemory.dataReady = pipelineResultMemory.regDataWriteReady;
-    resultOfInstructionAfterMemory.data = pipelineResultMemory.regDataWrite;     
+    if (pipelineResultMemory.bubbled) begin
+        resultOfInstructionAfterMemory.registerId = ZERO;
+        resultOfInstructionAfterMemory.dataReady = 1;
+        resultOfInstructionAfterMemory.data = 0;
+    end
+    else begin
+        resultOfInstructionAfterMemory.registerId = pipelineResultMemory.regWriteId;
+        resultOfInstructionAfterMemory.dataReady = pipelineResultMemory.regDataWriteReady;
+        resultOfInstructionAfterMemory.data = pipelineResultMemory.regDataWrite;
+    end
 end
 
 `ifndef SYNTHESIS

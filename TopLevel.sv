@@ -33,6 +33,7 @@ stage_register_data_t resultOfInstructionAfterMemory;
 
 logic stallOnDecode;
 logic stallOnExecuation;
+logic stallFromExecuation;
 
 logic jumpEnabled;
 int_t jumpValue;
@@ -85,6 +86,7 @@ PipelineStageDecode decode(
 
     // From execuation stage
     .stallOnExecuation(stallOnExecuation),
+    .stallFromExecuation(stallFromExecuation),
     .resultOfInstructionAfterExecuation(resultOfInstructionAfterExecuation),
 
     // From memory stage
@@ -115,6 +117,7 @@ PipelineStageExecuation execuation(
 
     .pipelineResultExecuation(pipelineResultExecuation),
     .stallOnExecuation(stallOnExecuation),
+    .stallFromExecuation(stallFromExecuation),
     .resultOfInstructionAfterExecuation(resultOfInstructionAfterExecuation)
 );
 
