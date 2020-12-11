@@ -4,6 +4,7 @@
 `include "Definitions.sv"
 `include "Decoder.sv"
 
+`ifndef SYNTHESIS
 function string inspect(input instruction_t instruction);
     casez (instruction.operationCode)
         R:
@@ -81,5 +82,10 @@ function string inspect(input instruction_t instruction);
             );
     endcase
 endfunction
+`else
+function logic inspect(input instruction_t instruction);
+    return 0;
+endfunction
+`endif
 
 `endif // DEBUG_INCLUDED

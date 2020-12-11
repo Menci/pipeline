@@ -40,7 +40,7 @@ logic hazardStall [2];
 stall_count_t stallCount;
 
 stages_register_data_t registerDataFromStages;
-assign registerDataFromStages = {
+assign registerDataFromStages = '{
     resultOfInstructionAfterExecuation,
     resultOfInstructionAfterMemory,
     `NO_SUCH_STAGE
@@ -160,9 +160,11 @@ always_comb begin
     resultOfInstructionAfterExecuation.data = pipelineResultExecuation.regDataWrite;     
 end
 
+`ifndef SYNTHESIS
 // Debug
 string instructionInfo;
 assign instructionInfo = inspect(pipelineResultDecode.instruction);
+`endif
 
 endmodule
 

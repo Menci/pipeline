@@ -34,7 +34,7 @@ register_data_read_t regData;
 logic hazardStall [2];
 
 stages_register_data_t registerDataFromStages;
-assign registerDataFromStages = {
+assign registerDataFromStages = '{
     resultOfInstructionAfterMemory,
     `NO_SUCH_STAGE,
     `NO_SUCH_STAGE
@@ -46,7 +46,7 @@ HazardUnit hu0(
     .programCounter(pipelineResultExecuation.programCounter),
     .registerId(pipelineResultExecuation.regReadId.id1),
     .originalData(pipelineResultExecuation.regData.data1),
-    .stallCount(0),
+    .stallCount(2'b00),
     .dataFromNextStages(registerDataFromStages),
     .forwardedData(regData.data1),
     .stall(hazardStall[0])
@@ -58,7 +58,7 @@ HazardUnit hu1(
     .programCounter(pipelineResultExecuation.programCounter),
     .registerId(pipelineResultExecuation.regReadId.id2),
     .originalData(pipelineResultExecuation.regData.data2),
-    .stallCount(0),
+    .stallCount(2'b00),
     .dataFromNextStages(registerDataFromStages),
     .forwardedData(regData.data2),
     .stall(hazardStall[1])
@@ -138,9 +138,11 @@ always_comb begin
     resultOfInstructionAfterMemory.data = pipelineResultMemory.regDataWrite;     
 end
 
+`ifndef SYNTHESIS
 // Debug
 string instructionInfo;
 assign instructionInfo = inspect(pipelineResultExecuation.instruction);
+`endif
 
 endmodule
 

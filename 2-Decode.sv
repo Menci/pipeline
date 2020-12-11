@@ -194,9 +194,11 @@ always_comb begin
     resultOfInstructionAfterDecode.data = pipelineResultDecode.regDataWrite;
 end
 
+`ifndef SYNTHESIS
 // Debug
 string instructionInfo;
 assign instructionInfo = inspect(pipelineResultFetch.instruction);
+`endif
 
 endmodule
 

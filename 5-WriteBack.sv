@@ -40,9 +40,11 @@ always_comb
     if (pipelineResultMemory.instruction.operationCode == R && pipelineResultMemory.instruction.functionCode == R_SYSCALL)
         $stop;
 
+`ifndef SYNTHESIS
 // Debug
 string instructionInfo;
 assign instructionInfo = inspect(pipelineResultMemory.instruction);
+`endif
 
 endmodule
 

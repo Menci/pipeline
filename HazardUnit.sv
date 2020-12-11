@@ -32,20 +32,22 @@ module HazardUnit(
 int_t currentForwardedData;
 logic currentStall;
 
+
 always_comb begin
     currentStall = 0;
     currentForwardedData = originalData;
 
     if (registerId != ZERO)
-        for (integer i = stallCount; i < `MAX_STALL_STAGES; i++)
-            if (registerId == dataFromNextStages[i].registerId) begin
-                if (dataFromNextStages[i].dataReady)
-                    currentForwardedData = dataFromNextStages[i].data;
-                else
-                    currentStall = 1;
+        for (integer i = 0; i < `MAX_STALL_STAGES; i++)
+            if (i >= stallCount)
+                if (registerId == dataFromNextStages[i].registerId) begin
+                    if (dataFromNextStages[i].dataReady)
+                        currentForwardedData = dataFromNextStages[i].data;
+                    else
+                        currentStall = 1;
 
-                break;
-            end
+                    break;
+                end
 end
 
 // If we stalled for too long, the instruction (computed after current instruction's decode (aka. read general registers) stage)
