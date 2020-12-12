@@ -2,7 +2,7 @@
 `define PIPELINE_DECODE_INCLUDED
 
 `include "Definitions.sv"
-`include "Decoder.sv"
+`include "Instruction.sv"
 `include "ControllerUnit.sv"
 `include "HazardUnit.sv"
 `include "Multiplexers.sv"

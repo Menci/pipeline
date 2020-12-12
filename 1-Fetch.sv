@@ -3,6 +3,7 @@
 
 `include "Definitions.sv"
 `include "ProgramCounter.sv"
+`include "Instruction.sv"
 `include "InstructionMemory.sv"
 `include "Debug.sv"
 
@@ -31,7 +32,7 @@ assign stall = stallOnDecode;
 
 int_t programCounter;
 logic programCounterChangedTimes;
-int_t instructionData;
+instruction_t instruction;
 
 ProgramCounter pc(
     .reset(reset),
@@ -46,13 +47,6 @@ ProgramCounter pc(
 InstructionMemory im(
     .clock(clock),
     .programCounter(programCounter),
-    .instructionData(instructionData)
-);
-
-instruction_t instruction;
-
-Decoder decoder(
-    .instructionData(instructionData),
     .instruction(instruction)
 );
 

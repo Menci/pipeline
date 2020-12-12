@@ -7,7 +7,7 @@
 `include "4-Memory.sv"
 `include "5-WriteBack.sv"
 
-`include "Decoder.sv"
+`include "Instruction.sv"
 `include "ControllerUnit.sv"
 `include "GeneralPurposeRegisters.sv"
 `include "ProgramCounter.sv"

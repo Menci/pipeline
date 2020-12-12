@@ -28,6 +28,8 @@
 `define INST_ADDR_HIGH    25
 `define INST_ADDR_LOW     0
 
+`define INST_RANGE(inst) `INST_``inst``_HIGH:`INST_``inst``_LOW
+
 typedef enum logic [31:0] {
     ADD     = 32'b000000_XXXXXXXXXXXXXXXXXXXX_100000,
     ADDU    = 32'b000000_XXXXXXXXXXXXXXXXXXXX_100001,
@@ -106,25 +108,22 @@ typedef struct packed {
 // Include the file after enum
 `include "Debug.sv"
 
-module Decoder(
-    input int_t instructionData,
-    output instruction_t instruction
-);
+function instruction_t parseInstruction(int_t instructionData);
+    instruction_t instruction;
 
-always_comb begin
-`ifdef DEBUG_INSTRUCTION_CODE_ENUM
+`ifndef DEBUG_INSTRUCTION_CODE_ENUM
     instruction.instructionCode = instruction_code_t'(instructionData);
 `else
     instruction.instructionCode = getInstructionCode(instructionData);
 `endif
-    instruction.registerS = register_id_t'(instructionData[`INST_RS_HIGH:`INST_RS_LOW]);
-    instruction.registerT = register_id_t'(instructionData[`INST_RT_HIGH:`INST_RT_LOW]);
-    instruction.registerD = register_id_t'(instructionData[`INST_RD_HIGH:`INST_RD_LOW]);
-    instruction.shiftAmount = instructionData[`INST_SH_HIGH:`INST_SH_LOW];
-    instruction.immediate = instructionData[`INST_IMME_HIGH:`INST_IMME_LOW];
-    instruction.absoluteJumpInput = instructionData[`INST_ADDR_HIGH:`INST_ADDR_LOW];
-end
+    instruction.registerS = register_id_t'(instructionData[`INST_RANGE(RS)]);
+    instruction.registerT = register_id_t'(instructionData[`INST_RANGE(RT)]);
+    instruction.registerD = register_id_t'(instructionData[`INST_RANGE(RD)]);
+    instruction.shiftAmount = instructionData[`INST_RANGE(SH)];
+    instruction.immediate = instructionData[`INST_RANGE(IMME)];
+    instruction.absoluteJumpInput = instructionData[`INST_RANGE(ADDR)];
 
-endmodule
+    return instruction;
+endfunction
 
 `endif // DECODER_INCLUDED

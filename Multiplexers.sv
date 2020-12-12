@@ -1,7 +1,7 @@
 `ifndef MULTIPLEXERS_INCLUDED
 `define MULTIPLEXERS_INCLUDED
 
-`include "Decoder.sv"
+`include "Instruction.sv"
 `include "ControllerUnit.sv"
 `include "GeneralPurposeRegisters.sv"
 

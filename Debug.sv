@@ -2,7 +2,7 @@
 `define DEBUG_INCLUDED
 
 `include "Definitions.sv"
-`include "Decoder.sv"
+`include "Instruction.sv"
 
 `ifndef SYNTHESIS
 `define DEBUG_INSTRUCTION_CODE_ENUM

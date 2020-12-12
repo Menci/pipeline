@@ -2,7 +2,7 @@
 `define COUNTROLLER_UNIT_INCLUDED
 
 `include "ProgramCounter.sv"
-`include "Decoder.sv"
+`include "Instruction.sv"
 `include "ArithmeticLogicUnit.sv"
 `include "GeneralPurposeRegisters.sv"
 
@@ -32,22 +32,22 @@ typedef enum logic [1:0] {
 } jump_input_from_t;
 
 typedef enum logic [2:0] {
-    NAME_ZERO = 0,
-    RS        = 1,
-    RT        = 2,
-    RD        = 3,
-    NAME_RA   = 4  // ra = 31
+    NAME_ZERO,
+    RS,
+    RT,
+    RD,
+    NAME_RA    // ra = 31
 } register_id_from_t;
 
 typedef enum logic [2:0] {
-    FALSE                                        = 0,
-    TRUE                                         = 1,
-    REG_READ_DATA_EQUAL                          = 2,
-    REG_READ_DATA_NOT_EQUAL                      = 3,
-    REG_READ_DATA1_LESS_THAN_ZERO                = 4,
-    REG_READ_DATA1_LESS_THAN_OR_EQUAL_TO_ZERO    = 5,
-    REG_READ_DATA1_GREATER_THAN_ZERO             = 6,
-    REG_READ_DATA1_GREATER_THAN_OR_EQUAL_TO_ZERO = 7
+    FALSE,
+    TRUE,
+    REG_READ_DATA_EQUAL,
+    REG_READ_DATA_NOT_EQUAL,
+    REG_READ_DATA1_LESS_THAN_ZERO,
+    REG_READ_DATA1_LESS_THAN_OR_EQUAL_TO_ZERO,
+    REG_READ_DATA1_GREATER_THAN_ZERO,
+    REG_READ_DATA1_GREATER_THAN_OR_EQUAL_TO_ZERO
 } jump_condition_t;
 
 typedef enum logic [1:0] {

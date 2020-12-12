@@ -2,11 +2,12 @@
 `define INSTRUCTION_MEMORY_INCLUDED
 
 `include "Definitions.sv"
+`include "Instruction.sv"
 
 module InstructionMemory(
     input logic clock,
     input int_t programCounter,
-    output int_t instructionData
+    output instruction_t instruction
 );
 
 logic [11:2] memoryAddress;
@@ -17,7 +18,7 @@ int_t memory [1023:0];
 initial
     $readmemh("/tmp/code.txt", memory);
 
-assign instructionData = memory[memoryAddress];
+assign instruction = parseInstruction(memory[memoryAddress]);
 
 endmodule
 
