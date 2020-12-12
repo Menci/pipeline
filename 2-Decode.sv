@@ -94,10 +94,14 @@ HazardUnit hu1(
 );
 
 // Stall
-logic regDataRequired;
-assign regDataRequired = signals.regDataRequiredStage <= DECODE;
+logic regDataRequired [2];
+assign regDataRequired[0] = signals.regData1RequiredStage <= DECODE;
+assign regDataRequired[1] = signals.regData2RequiredStage <= DECODE;
 logic stallFromDecode;
-assign stallFromDecode = regDataRequired && (hazardStall[0] || hazardStall[1]);
+assign stallFromDecode = (
+    (hazardStall[0] && regDataRequired[0]) ||
+    (hazardStall[1] && regDataRequired[1])
+);
 assign stallOnDecode = stallFromDecode || stallOnExecuation;
 logic stall;
 assign stall = stallOnDecode;

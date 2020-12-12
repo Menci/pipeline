@@ -16,6 +16,7 @@ typedef struct packed {
     register_data_read_t regData;
     register_id_t regWriteId;
     int_t aluResult;
+    int_t dmAddress;
     logic regDataWriteReady;
     int_t regDataWrite;
     logic bubbled;
@@ -70,9 +71,14 @@ HazardUnit hu1(
 );
 
 // Execuation Stage: Stall
-logic regDataRequired;
-assign regDataRequired = pipelineResultDecode.signals.regDataRequiredStage <= EXECUATION;
-assign stallFromExecuation = regDataRequired && (hazardStall[0] || hazardStall[1]);
+logic regDataRequired [2];
+assign regDataRequired[0] = pipelineResultDecode.signals.regData1RequiredStage <= EXECUATION;
+assign regDataRequired[1] = pipelineResultDecode.signals.regData2RequiredStage <= EXECUATION;
+logic stallFromExecuation;
+assign stallFromExecuation = (
+    (hazardStall[0] && regDataRequired[0]) ||
+    (hazardStall[1] && regDataRequired[1])
+);
 assign stallOnExecuation = stallFromExecuation;
 logic stall;
 assign stall = stallOnExecuation || pipelineResultDecode.bubbled;
@@ -117,8 +123,9 @@ always_ff @ (posedge clock) begin
             pipelineResultExecuation.signals <= pipelineResultDecode.signals;
             pipelineResultExecuation.regReadId <= pipelineResultDecode.regReadId;
             pipelineResultExecuation.regData <= regData;
-            pipelineResultExecuation.regWriteId <= pipelineResultDecode.regWriteId;
             pipelineResultExecuation.aluResult <= aluResult;
+            pipelineResultExecuation.dmAddress <= aluResult;
+            pipelineResultExecuation.regWriteId <= pipelineResultDecode.regWriteId;
 
             // Register write data - for passing and forwarding
 

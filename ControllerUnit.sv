@@ -5,6 +5,7 @@
 `include "Instruction.sv"
 `include "ArithmeticLogicUnit.sv"
 `include "GeneralPurposeRegisters.sv"
+`include "DataMemory.sv"
 
 typedef enum logic [1:0] {
     REG_WRITE_FROM_ALU_RESULT,
@@ -60,14 +61,16 @@ typedef enum logic [1:0] {
 typedef struct packed {
     register_id_from_t regReadId1From;
     register_id_from_t regReadId2From;
-    register_data_required_stage_t regDataRequiredStage;
+    register_data_required_stage_t regData1RequiredStage;
+    register_data_required_stage_t regData2RequiredStage;
     register_id_from_t regWriteIdFrom;
     logic regWriteEnabled;
     reg_write_from_t regDataWriteFrom;
+    dm_read_extract_extend_type_t dmReadExtractExtendType;
     alu_operand_from_t aluOperand1From;
     alu_operand_from_t aluOperand2From;
     alu_operator_t aluOperator;
-    logic dmWriteEnabled;
+    dm_write_type_t dmWriteType;
     dm_write_from_t dmDataWriteFrom;
     jump_condition_t pcJumpCondition;
     jump_type_t pcJumpType;
@@ -83,15 +86,17 @@ always_comb begin
     // Reset control signals
     signals.regReadId1From = NAME_ZERO;
     signals.regReadId2From = NAME_ZERO;
-    signals.regDataRequiredStage = NONE;
+    signals.regData1RequiredStage = NONE;
+    signals.regData2RequiredStage = NONE;
     signals.regWriteIdFrom = NAME_ZERO;
     signals.regWriteEnabled = 0;
     signals.regDataWriteFrom = REG_WRITE_FROM_ALU_RESULT;
     signals.aluOperand1From = ALU_OPERAND_FROM_REG_READ1;
     signals.aluOperand2From = ALU_OPERAND_FROM_REG_READ1;
     signals.aluOperator = ALU_ADD;
-    signals.dmWriteEnabled = 0;
+    signals.dmWriteType = WRITE_DISABLED;
     signals.dmDataWriteFrom = DM_WRITE_FROM_REG_READ2;
+    signals.dmReadExtractExtendType = ORIGINAL;
     signals.pcJumpCondition = FALSE;
     signals.pcJumpType = NEAR;
     signals.pcJumpInputFrom = JUMP_INPUT_FROM_REG_READ1;
@@ -114,7 +119,8 @@ always_comb begin
                 default: signals.regReadId1From = RS;
             endcase
             signals.regReadId2From = RT;
-            signals.regDataRequiredStage = EXECUATION;
+            signals.regData1RequiredStage = EXECUATION;
+            signals.regData2RequiredStage = EXECUATION;
             casex (instruction.instructionCode)
                 SLL:     signals.aluOperand1From = ALU_OPERAND_FROM_SHIFT_AMOUNT;
                 SRL:     signals.aluOperand1From = ALU_OPERAND_FROM_SHIFT_AMOUNT;
@@ -148,7 +154,8 @@ always_comb begin
         ADDI, ADDIU, ANDI, ORI,
         XORI, SLTI, SLTIU: begin
             signals.regReadId1From = RS;
-            signals.regDataRequiredStage = EXECUATION;
+            signals.regData1RequiredStage = EXECUATION;
+            signals.regData2RequiredStage = EXECUATION;
             signals.aluOperand1From = ALU_OPERAND_FROM_REG_READ1;
             casex (instruction.instructionCode)
                 ADDI:  signals.aluOperand2From = ALU_OPERAND_FROM_IMME_SIGNED;
@@ -183,7 +190,8 @@ always_comb begin
                 BGEZ: signals.regReadId2From = NAME_ZERO;
                 BLTZ: signals.regReadId2From = NAME_ZERO;
             endcase
-            signals.regDataRequiredStage = DECODE;
+            signals.regData1RequiredStage = DECODE;
+            signals.regData2RequiredStage = DECODE;
             casex (instruction.instructionCode)
                 BEQ:  signals.pcJumpCondition = REG_READ_DATA_EQUAL;
                 BNE:  signals.pcJumpCondition = REG_READ_DATA_NOT_EQUAL;
@@ -219,31 +227,42 @@ always_comb begin
                 signals.regWriteIdFrom = RD;
                 signals.regDataWriteFrom = REG_WRITE_FROM_PC_ADD_8;
             end
-
             signals.regReadId1From = RS;
-            signals.regDataRequiredStage = DECODE;
+            signals.regData1RequiredStage = DECODE;
             signals.pcJumpCondition = TRUE;
             signals.pcJumpType = FAR;
             signals.pcJumpInputFrom = JUMP_INPUT_FROM_REG_READ1;
         end
-        LW, SW: begin
+        LB, LBU, LH, LHU, LW, SB, SH, SW: begin
             signals.regReadId1From = RS;
             signals.aluOperand1From = ALU_OPERAND_FROM_REG_READ1;
             signals.aluOperand2From = ALU_OPERAND_FROM_IMME_SIGNED;
             signals.aluOperator = ALU_ADD;
             casex (instruction.instructionCode)
                 // rt = *(rs + imme)
-                LW: begin
-                    signals.regDataRequiredStage = EXECUATION;
+                LB, LBU, LH, LHU, LW: begin
+                    signals.regData1RequiredStage = EXECUATION; // Address
                     signals.regWriteEnabled = 1;
                     signals.regWriteIdFrom = RT;
                     signals.regDataWriteFrom = REG_WRITE_FROM_DM_READ;
+                    casex (instruction.instructionCode)
+                        LB:  signals.dmReadExtractExtendType = BYTE_SIGNED;
+                        LBU: signals.dmReadExtractExtendType = BYTE_UNSIGNED;
+                        LH:  signals.dmReadExtractExtendType = HALF_WORD_SIGNED;
+                        LHU: signals.dmReadExtractExtendType = HALF_WORD_UNSIGNED;
+                        LW:  signals.dmReadExtractExtendType = ORIGINAL;
+                    endcase
                 end
                 // *(rs + imme) = rt
-                SW: begin
-                    signals.regDataRequiredStage = MEMORY;
+                SB, SH, SW: begin
+                    signals.regData1RequiredStage = EXECUATION; // Address
+                    signals.regData2RequiredStage = MEMORY;     // Data
                     signals.regReadId2From = RT;
-                    signals.dmWriteEnabled = 1;
+                    casex (instruction.instructionCode)
+                        SB: signals.dmWriteType = WRITE_BYTE;
+                        SH: signals.dmWriteType = WRITE_HALF_WORD;
+                        SW: signals.dmWriteType = WRITE_WORD;
+                    endcase
                     signals.dmDataWriteFrom = DM_WRITE_FROM_REG_READ2;
                 end
             endcase

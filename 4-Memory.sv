@@ -14,6 +14,7 @@ typedef struct packed {
     control_signals_t signals;
     register_read_id_t regReadId;
     register_data_read_t regData;
+    int_t dmAddress;
     register_id_t regWriteId;
     logic regDataWriteReady;
     int_t regDataWrite;
@@ -80,10 +81,11 @@ assign dmDataWrite = selectDataMemoryWriteData(
 
 DataMemory dm(
     .clock(clock),
-    .address(pipelineResultExecuation.aluResult),
-    .dataRead(dmDataRead),
-    .writeEnabled(!stall && pipelineResultExecuation.signals.dmWriteEnabled),
+    .address(pipelineResultExecuation.dmAddress),
+    .extractExtendType(pipelineResultExecuation.signals.dmReadExtractExtendType),
+    .writeType(stall ? WRITE_DISABLED : pipelineResultExecuation.signals.dmWriteType),
     .dataWrite(dmDataWrite),
+    .dataRead(dmDataRead),
     .programCounter(pipelineResultExecuation.programCounter)
 );
 
@@ -103,6 +105,7 @@ always_ff @ (posedge clock) begin
             pipelineResultMemory.signals <= pipelineResultExecuation.signals;
             pipelineResultMemory.regReadId <= pipelineResultExecuation.regReadId;
             pipelineResultMemory.regData <= pipelineResultExecuation.regData;
+            pipelineResultMemory.dmAddress <= pipelineResultExecuation.dmAddress;
             pipelineResultMemory.regWriteId <= pipelineResultExecuation.regWriteId;
 
             // Register write data - for passing and forwarding
