@@ -75,15 +75,6 @@ always_ff @ (negedge clock) begin
         registers[writeId] <= dataWrite;
 end
 
-// Debugging output
-always @ (negedge clock) begin
-    $display("GR: Read1 @0x%h: r%02d => 0x%h", programCounterRead, readId.id1, dataRead.data1);
-    $display("GR: Read2 @0x%h: r%02d => 0x%h", programCounterRead, readId.id2, dataRead.data2);
-
-    if (writeEnabled)
-        $display("GR: Write @0x%h: r%02d <= 0x%h", programCounterWrite, writeId, dataWrite);
-end
-
 // Validation output
 always @ (posedge clock)
     if (writeEnabled)

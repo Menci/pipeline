@@ -43,13 +43,6 @@ always_ff @ (posedge clock) begin
         end
 end
 
-// Debugging output
-always @ (posedge clock)
-    if (stall)
-        $display("PC Stall : @0x%h -> @0x%h", value, nextValue);
-    else
-        $display("PC Change: @0x%h -> @0x%h", value, nextValue);
-
 endmodule
 
 `endif // PROGRAM_COUNTER_INCLUDED
