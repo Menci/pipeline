@@ -91,8 +91,8 @@ always_ff @ (posedge clock) begin
                             $stop;
 
                         case (operation)
-                            MDU_START_SIGNED_MUL, MDU_START_UNSIGNED_MUL: remainingCycleCount <= 5;
-                            MDU_START_SIGNED_DIV, MDU_START_UNSIGNED_DIV: remainingCycleCount <= 10;
+                            MDU_START_SIGNED_MUL, MDU_START_UNSIGNED_MUL: remainingCycleCount <= `MUL_DELAY_CYCLES;
+                            MDU_START_SIGNED_DIV, MDU_START_UNSIGNED_DIV: remainingCycleCount <= `DIV_DELAY_CYCLES;
                         endcase
 
                         savedOperand1 <= operand1;

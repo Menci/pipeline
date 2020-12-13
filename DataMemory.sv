@@ -30,14 +30,14 @@ module DataMemory(
     input int_t programCounter
 );
 
-logic [11:2] memoryAddress;
-assign memoryAddress = address[11:2];
+logic [`DM_SIZE_BIT - 1:2] memoryAddress;
+assign memoryAddress = address[`DM_SIZE_BIT - 1:2];
 
-int_t memory [1023:0];
+int_t memory [`DM_WORDS - 1:0];
 
 // Initialization
 initial begin
-    for (integer i = 0; i < 1024; i++)
+    for (integer i = 0; i < `DM_WORDS; i++)
         memory[i] = 0;
 end
 
@@ -129,7 +129,7 @@ always_ff @ (posedge clock)
 // Validation output
 always_ff @ (posedge clock)
     if (writeEnabled)
-        $display("@%h: *%h <= %h", programCounter, {20'b0, memoryAddress, 2'b0}, computedDataWrite);
+        $display("@%h: *%h <= %h", programCounter, {{32 - `DM_SIZE_BIT{1'b0}}, memoryAddress, 2'b0}, computedDataWrite);
 
 endmodule
 
