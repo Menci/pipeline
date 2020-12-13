@@ -1,6 +1,6 @@
 # Pipeline
 
-Pipelined MIPS processor in Verilog.
+Pipelined MIPS processor in Verilog. See [report](report.pdf) for more information.
 
 Supported instructions:
 
