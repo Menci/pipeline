@@ -5,21 +5,21 @@
 `include "ControllerUnit.sv"
 `include "GeneralPurposeRegisters.sv"
 
-function int_t selectAluOperandData(
-    alu_operand_from_t from,
+function int_t selectAluMduOperandData(
+    alu_mdu_operand_from_t from,
     register_data_read_t regRead,
     instruction_t instruction
 );
     casez (from)
-        ALU_OPERAND_FROM_REG_READ1:
+        ALU_MDU_OPERAND_FROM_REG_READ1:
             return regRead.data1;
-        ALU_OPERAND_FROM_REG_READ2:
+        ALU_MDU_OPERAND_FROM_REG_READ2:
             return regRead.data2;
-        ALU_OPERAND_FROM_IMME_UNSIGNED:
+        ALU_MDU_OPERAND_FROM_IMME_UNSIGNED:
             return {16'b0, instruction.immediate};
-        ALU_OPERAND_FROM_IMME_SIGNED:
+        ALU_MDU_OPERAND_FROM_IMME_SIGNED:
             return {{16{instruction.immediate[15]}}, instruction.immediate};
-        ALU_OPERAND_FROM_SHIFT_AMOUNT:
+        ALU_MDU_OPERAND_FROM_SHIFT_AMOUNT:
             return {27'b0, instruction.shiftAmount};
         default:
             return 'bx;

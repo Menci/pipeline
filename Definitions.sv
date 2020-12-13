@@ -1,6 +1,7 @@
 `ifndef DEFINITIONS_INCLUDED
 `define DEFINITIONS_INCLUDED
 
+typedef logic [63:0] long_t;
 typedef logic [31:0] int_t;
 typedef logic [15:0] short_t;
 typedef logic [7:0] byte_t;

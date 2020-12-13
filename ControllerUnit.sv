@@ -4,23 +4,25 @@
 `include "ProgramCounter.sv"
 `include "Instruction.sv"
 `include "ArithmeticLogicUnit.sv"
+`include "MultiplicationDivisionUnit.sv"
 `include "GeneralPurposeRegisters.sv"
 `include "DataMemory.sv"
 
-typedef enum logic [1:0] {
+typedef enum logic [2:0] {
     REG_WRITE_FROM_ALU_RESULT,
+    REG_WRITE_FROM_MDU_DATA_READ,
     REG_WRITE_FROM_DM_READ,
     REG_WRITE_FROM_PC_ADD_8,
     REG_WRITE_FROM_IMME_LSHIFTED
 } reg_write_from_t;
 
 typedef enum logic [2:0] {
-    ALU_OPERAND_FROM_REG_READ1,
-    ALU_OPERAND_FROM_REG_READ2,
-    ALU_OPERAND_FROM_IMME_UNSIGNED,
-    ALU_OPERAND_FROM_IMME_SIGNED,
-    ALU_OPERAND_FROM_SHIFT_AMOUNT
-} alu_operand_from_t;
+    ALU_MDU_OPERAND_FROM_REG_READ1,
+    ALU_MDU_OPERAND_FROM_REG_READ2,
+    ALU_MDU_OPERAND_FROM_IMME_UNSIGNED,
+    ALU_MDU_OPERAND_FROM_IMME_SIGNED,
+    ALU_MDU_OPERAND_FROM_SHIFT_AMOUNT
+} alu_mdu_operand_from_t;
 
 typedef enum logic [0:0] {
     DM_WRITE_FROM_REG_READ2
@@ -67,9 +69,12 @@ typedef struct packed {
     logic regWriteEnabled;
     reg_write_from_t regDataWriteFrom;
     dm_read_extract_extend_type_t dmReadExtractExtendType;
-    alu_operand_from_t aluOperand1From;
-    alu_operand_from_t aluOperand2From;
+    alu_mdu_operand_from_t aluMduOperand1From;
+    alu_mdu_operand_from_t aluMduOperand2From;
     alu_operator_t aluOperator;
+    mdu_operation_t mduOperation;
+    logic mduUse;
+    logic mduStart;
     dm_write_type_t dmWriteType;
     dm_write_from_t dmDataWriteFrom;
     jump_condition_t pcJumpCondition;
@@ -91,9 +96,12 @@ always_comb begin
     signals.regWriteIdFrom = NAME_ZERO;
     signals.regWriteEnabled = 0;
     signals.regDataWriteFrom = REG_WRITE_FROM_ALU_RESULT;
-    signals.aluOperand1From = ALU_OPERAND_FROM_REG_READ1;
-    signals.aluOperand2From = ALU_OPERAND_FROM_REG_READ1;
+    signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
+    signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_REG_READ1;
     signals.aluOperator = ALU_ADD;
+    signals.mduOperation = MDU_READ_HI;
+    signals.mduUse = 0;
+    signals.mduStart = 0;
     signals.dmWriteType = WRITE_DISABLED;
     signals.dmDataWriteFrom = DM_WRITE_FROM_REG_READ2;
     signals.dmReadExtractExtendType = ORIGINAL;
@@ -122,12 +130,12 @@ always_comb begin
             signals.regData1RequiredStage = EXECUATION;
             signals.regData2RequiredStage = EXECUATION;
             casex (instruction.instructionCode)
-                SLL:     signals.aluOperand1From = ALU_OPERAND_FROM_SHIFT_AMOUNT;
-                SRL:     signals.aluOperand1From = ALU_OPERAND_FROM_SHIFT_AMOUNT;
-                SRA:     signals.aluOperand1From = ALU_OPERAND_FROM_SHIFT_AMOUNT;
-                default: signals.aluOperand1From = ALU_OPERAND_FROM_REG_READ1;
+                SLL:     signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_SHIFT_AMOUNT;
+                SRL:     signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_SHIFT_AMOUNT;
+                SRA:     signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_SHIFT_AMOUNT;
+                default: signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
             endcase
-            signals.aluOperand2From = ALU_OPERAND_FROM_REG_READ2;
+            signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_REG_READ2;
             casex (instruction.instructionCode)
                 ADD:  signals.aluOperator = ALU_ADD;
                 ADDU: signals.aluOperator = ALU_ADD;
@@ -156,15 +164,15 @@ always_comb begin
             signals.regReadId1From = RS;
             signals.regData1RequiredStage = EXECUATION;
             signals.regData2RequiredStage = EXECUATION;
-            signals.aluOperand1From = ALU_OPERAND_FROM_REG_READ1;
+            signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
             casex (instruction.instructionCode)
-                ADDI:  signals.aluOperand2From = ALU_OPERAND_FROM_IMME_SIGNED;
-                ADDIU: signals.aluOperand2From = ALU_OPERAND_FROM_IMME_SIGNED;
-                ANDI:  signals.aluOperand2From = ALU_OPERAND_FROM_IMME_UNSIGNED;
-                ORI:   signals.aluOperand2From = ALU_OPERAND_FROM_IMME_UNSIGNED;
-                XORI:  signals.aluOperand2From = ALU_OPERAND_FROM_IMME_UNSIGNED;
-                SLTI:  signals.aluOperand2From = ALU_OPERAND_FROM_IMME_SIGNED;
-                SLTIU: signals.aluOperand2From = ALU_OPERAND_FROM_IMME_SIGNED;
+                ADDI:  signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
+                ADDIU: signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
+                ANDI:  signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_UNSIGNED;
+                ORI:   signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_UNSIGNED;
+                XORI:  signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_UNSIGNED;
+                SLTI:  signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
+                SLTIU: signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
             endcase
             casex (instruction.instructionCode)
                 ADDI:  signals.aluOperator = ALU_ADD;
@@ -235,8 +243,8 @@ always_comb begin
         end
         LB, LBU, LH, LHU, LW, SB, SH, SW: begin
             signals.regReadId1From = RS;
-            signals.aluOperand1From = ALU_OPERAND_FROM_REG_READ1;
-            signals.aluOperand2From = ALU_OPERAND_FROM_IMME_SIGNED;
+            signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
+            signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
             signals.aluOperator = ALU_ADD;
             casex (instruction.instructionCode)
                 // rt = *(rs + imme)
@@ -265,6 +273,42 @@ always_comb begin
                     endcase
                     signals.dmDataWriteFrom = DM_WRITE_FROM_REG_READ2;
                 end
+            endcase
+        end
+        MULT, MULTU, DIV, DIVU: begin
+            signals.regReadId1From = RS;
+            signals.regReadId2From = RT;
+            signals.regData1RequiredStage = EXECUATION;
+            signals.regData2RequiredStage = EXECUATION;
+            signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
+            signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_REG_READ2;
+            signals.mduUse = 1;
+            signals.mduStart = 1;
+            casex (instruction.instructionCode)
+                MULT:  signals.mduOperation = MDU_START_SIGNED_MUL;
+                MULTU: signals.mduOperation = MDU_START_UNSIGNED_MUL;
+                DIV:   signals.mduOperation = MDU_START_SIGNED_DIV;
+                DIVU:  signals.mduOperation = MDU_START_UNSIGNED_DIV;
+            endcase
+        end
+        MFHI, MFLO: begin
+            signals.mduUse = 1;
+            casex (instruction.instructionCode)
+                MFHI: signals.mduOperation = MDU_READ_HI;
+                MFLO: signals.mduOperation = MDU_READ_LO;
+            endcase
+            signals.regWriteIdFrom = RD;
+            signals.regWriteEnabled = 1;
+            signals.regDataWriteFrom = REG_WRITE_FROM_MDU_DATA_READ;
+        end
+        MTHI, MTLO: begin
+            signals.regReadId1From = RS;
+            signals.regData1RequiredStage = EXECUATION;
+            signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
+            signals.mduUse = 1;
+            casex (instruction.instructionCode)
+                MTHI: signals.mduOperation = MDU_WRITE_HI;
+                MTLO: signals.mduOperation = MDU_WRITE_LO;
             endcase
         end
     endcase
