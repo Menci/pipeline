@@ -1,5 +1,5 @@
-`ifndef TOPLEVEL_INCLUDED
-`define TOPLEVEL_INCLUDED
+`ifndef MIPS_INCLUDED
+`define MIPS_INCLUDED
 
 `include "1-Fetch.sv"
 `include "2-Decode.sv"
@@ -15,9 +15,9 @@
 `include "DataMemory.sv"
 `include "ArithmeticLogicUnit.sv"
 `include "Multiplexers.sv"
-`include "HazardUnit.sv"
+`include "ForwardingUnit.sv"
 
-module TopLevel(
+module MIPS(
     input logic reset,
     input logic clock
 );
@@ -151,4 +151,4 @@ PipelineStageWriteBack writeBack(
 
 endmodule
 
-`endif // TOPLEVEL_INCLUDED
+`endif // MIPS_INCLUDED

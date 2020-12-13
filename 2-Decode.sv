@@ -4,7 +4,7 @@
 `include "Definitions.sv"
 `include "Instruction.sv"
 `include "ControllerUnit.sv"
-`include "HazardUnit.sv"
+`include "ForwardingUnit.sv"
 `include "Multiplexers.sv"
 
 `include "1-Fetch.sv"
@@ -71,7 +71,7 @@ assign registerDataFromStages = '{
     resultOfInstructionAfterMemory
 };
 
-HazardUnit hu0(
+ForwardingUnit fu0(
     .reset(reset),
     .clock(clock),
     .programCounterChangedTimes(pipelineResultFetch.programCounterChangedTimes),
@@ -82,7 +82,7 @@ HazardUnit hu0(
     .stall(hazardStall[0])
 );
 
-HazardUnit hu1(
+ForwardingUnit fu1(
     .reset(reset),
     .clock(clock),
     .programCounterChangedTimes(pipelineResultFetch.programCounterChangedTimes),
@@ -138,6 +138,7 @@ always_comb begin
     );
 
     // Calculate jump value
+    jumpValue = 0;
     case (signals.pcJumpType)
         NEAR:
             jumpValue = (pipelineResultFetch.programCounter & 32'hf0000000) | {4'b0, jumpInput[25:0], 2'b0};

@@ -2,7 +2,7 @@
 `define PIPELINE_EXECUATION_INCLUDED
 
 `include "Definitions.sv"
-`include "HazardUnit.sv"
+`include "ForwardingUnit.sv"
 `include "Multiplexers.sv"
 
 `include "2-Decode.sv"
@@ -48,7 +48,7 @@ assign registerDataFromStages = '{
     `NO_SUCH_STAGE
 };
 
-HazardUnit hu0(
+ForwardingUnit fu0(
     .reset(reset),
     .clock(clock),
     .programCounterChangedTimes(pipelineResultDecode.programCounterChangedTimes),
@@ -59,7 +59,7 @@ HazardUnit hu0(
     .stall(hazardStall[0])
 );
 
-HazardUnit hu1(
+ForwardingUnit fu1(
     .reset(reset),
     .clock(clock),
     .programCounterChangedTimes(pipelineResultDecode.programCounterChangedTimes),

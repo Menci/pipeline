@@ -1,5 +1,5 @@
-`ifndef HAZARD_UNIT_INCLUDED
-`define HAZARD_UNIT_INCLUDED
+`ifndef FORWARDING_UNIT_INCLUDED
+`define FORWARDING_UNIT_INCLUDED
 
 `include "GeneralPurposeRegisters.sv"
 
@@ -16,7 +16,7 @@ typedef logic [1:0] stall_count_t;
 
 typedef stage_register_data_t stages_register_data_t [`MAX_STALL_STAGES];
 
-module HazardUnit(
+module ForwardingUnit(
     input logic reset,
     input logic clock,
     input logic programCounterChangedTimes,
@@ -81,4 +81,4 @@ end
 
 endmodule
 
-`endif // HAZARD_UNIT_INCLUDED
+`endif // FORWARDING_UNIT_INCLUDED
