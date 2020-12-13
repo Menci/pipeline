@@ -68,6 +68,7 @@ HazardUnit hu1(
 always_comb 
     assert ((hazardStall[0] || hazardStall[1]) == 0);
 
+logic stall;
 assign stall = pipelineResultExecuation.bubbled;
 
 // Data Memory

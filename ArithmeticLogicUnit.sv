@@ -52,9 +52,9 @@ always_comb begin
         ALU_NOR:
             result = ~(operand1 | operand2);
         ALU_LESS_THAN_SIGNED:
-            result = $signed(operand1) < $signed(operand2);
+            result = {31'b0, $signed(operand1) < $signed(operand2)};
         ALU_LESS_THAN_UNSIGNED:
-            result = operand1 < operand2;
+            result = {31'b0, operand1 < operand2};
     endcase
 end
 endmodule

@@ -75,7 +75,6 @@ logic regDataRequired [2];
 assign regDataRequired[0] = pipelineResultDecode.signals.regData1RequiredStage <= EXECUATION;
 assign regDataRequired[1] = pipelineResultDecode.signals.regData2RequiredStage <= EXECUATION;
 logic mduBusy;
-logic stallFromExecuation;
 assign stallFromExecuation = (
     (hazardStall[0] && regDataRequired[0]) ||
     (hazardStall[1] && regDataRequired[1])

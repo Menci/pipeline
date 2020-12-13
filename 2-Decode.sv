@@ -65,7 +65,7 @@ register_data_read_t regData;
 logic hazardStall [2];
 
 stages_register_data_t registerDataFromStages;
-assign registerDataFromStages = {
+assign registerDataFromStages = '{
     resultOfInstructionAfterDecode,
     resultOfInstructionAfterExecuation,
     resultOfInstructionAfterMemory
@@ -111,7 +111,7 @@ int_t jumpInput;
 always_comb begin
     jumpEnabled = 0;
     if (!stall)
-        casez (signals.pcJumpCondition)
+        case (signals.pcJumpCondition)
             TRUE:
                 jumpEnabled = 1;
             FALSE:
@@ -138,7 +138,7 @@ always_comb begin
     );
 
     // Calculate jump value
-    casez (signals.pcJumpType)
+    case (signals.pcJumpType)
         NEAR:
             jumpValue = (pipelineResultFetch.programCounter & 32'hf0000000) | {4'b0, jumpInput[25:0], 2'b0};
         FAR:

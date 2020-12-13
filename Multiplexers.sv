@@ -10,7 +10,7 @@ function int_t selectAluMduOperandData(
     register_data_read_t regRead,
     instruction_t instruction
 );
-    casez (from)
+    case (from)
         ALU_MDU_OPERAND_FROM_REG_READ1:
             return regRead.data1;
         ALU_MDU_OPERAND_FROM_REG_READ2:
@@ -30,7 +30,7 @@ function int_t selectDataMemoryWriteData(
     dm_write_from_t from,
     register_data_read_t regRead
 );
-    casez (from)
+    case (from)
         DM_WRITE_FROM_REG_READ2:
             return regRead.data2;
         default:
@@ -43,7 +43,7 @@ function int_t selectJumpInput(
     register_data_read_t regRead,
     instruction_t instruction
 );
-    casez (from)
+    case (from)
         JUMP_INPUT_FROM_REG_READ1:
             return regRead.data1;
         JUMP_INPUT_FROM_IMME_UNSIGNED:
@@ -59,7 +59,7 @@ function register_id_t selectRegisterId(
     register_id_from_t from,
     instruction_t instruction
 );
-    casez (from)
+    case (from)
         NAME_ZERO:
             return ZERO;
         RS:

@@ -10,7 +10,7 @@
 
 `ifdef DEBUG_INSTRUCTION_CODE_ENUM
 function instruction_code_t getInstructionCode(input int_t instructionData);
-    casex (instruction_code_t'(instructionData))
+    casez (instruction_code_t'(instructionData))
         ADD:     return ADD;
         ADDU:    return ADDU;
         SUB:     return SUB;

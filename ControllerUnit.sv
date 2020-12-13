@@ -109,7 +109,7 @@ always_comb begin
     signals.pcJumpType = NEAR;
     signals.pcJumpInputFrom = JUMP_INPUT_FROM_REG_READ1;
 
-    casex (instruction.instructionCode)
+    casez (instruction.instructionCode)
         // syscall
         SYSCALL: begin
             // Do nothing
@@ -120,7 +120,7 @@ always_comb begin
         SLL, SRL, SRA, SLLV,
         SRLV, SRAV, AND, OR,
         XOR, NOR, SLT, SLTU: begin
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 SLL:     signals.regReadId1From = NAME_ZERO;
                 SRL:     signals.regReadId1From = NAME_ZERO;
                 SRA:     signals.regReadId1From = NAME_ZERO;
@@ -129,14 +129,14 @@ always_comb begin
             signals.regReadId2From = RT;
             signals.regData1RequiredStage = EXECUATION;
             signals.regData2RequiredStage = EXECUATION;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 SLL:     signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_SHIFT_AMOUNT;
                 SRL:     signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_SHIFT_AMOUNT;
                 SRA:     signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_SHIFT_AMOUNT;
                 default: signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
             endcase
             signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_REG_READ2;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 ADD:  signals.aluOperator = ALU_ADD;
                 ADDU: signals.aluOperator = ALU_ADD;
                 SUB:  signals.aluOperator = ALU_SUB;
@@ -165,7 +165,7 @@ always_comb begin
             signals.regData1RequiredStage = EXECUATION;
             signals.regData2RequiredStage = EXECUATION;
             signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 ADDI:  signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
                 ADDIU: signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
                 ANDI:  signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_UNSIGNED;
@@ -174,7 +174,7 @@ always_comb begin
                 SLTI:  signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
                 SLTIU: signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
             endcase
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 ADDI:  signals.aluOperator = ALU_ADD;
                 ADDIU: signals.aluOperator = ALU_ADD;
                 ANDI:  signals.aluOperator = ALU_AND;
@@ -190,7 +190,7 @@ always_comb begin
         // if Compare(rs, rt) then pc += SignedExtend(imme)
         BEQ, BNE, BLEZ, BGTZ, BGEZ, BLTZ: begin
             signals.regReadId1From = RS;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 BEQ:  signals.regReadId2From = RT;
                 BNE:  signals.regReadId2From = RT;
                 BLEZ: signals.regReadId2From = NAME_ZERO;
@@ -200,7 +200,7 @@ always_comb begin
             endcase
             signals.regData1RequiredStage = DECODE;
             signals.regData2RequiredStage = DECODE;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 BEQ:  signals.pcJumpCondition = REG_READ_DATA_EQUAL;
                 BNE:  signals.pcJumpCondition = REG_READ_DATA_NOT_EQUAL;
                 BLEZ: signals.pcJumpCondition = REG_READ_DATA1_LESS_THAN_OR_EQUAL_TO_ZERO;
@@ -246,14 +246,14 @@ always_comb begin
             signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
             signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_IMME_SIGNED;
             signals.aluOperator = ALU_ADD;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 // rt = *(rs + imme)
                 LB, LBU, LH, LHU, LW: begin
                     signals.regData1RequiredStage = EXECUATION; // Address
                     signals.regWriteEnabled = 1;
                     signals.regWriteIdFrom = RT;
                     signals.regDataWriteFrom = REG_WRITE_FROM_DM_READ;
-                    casex (instruction.instructionCode)
+                    casez (instruction.instructionCode)
                         LB:  signals.dmReadExtractExtendType = BYTE_SIGNED;
                         LBU: signals.dmReadExtractExtendType = BYTE_UNSIGNED;
                         LH:  signals.dmReadExtractExtendType = HALF_WORD_SIGNED;
@@ -266,7 +266,7 @@ always_comb begin
                     signals.regData1RequiredStage = EXECUATION; // Address
                     signals.regData2RequiredStage = MEMORY;     // Data
                     signals.regReadId2From = RT;
-                    casex (instruction.instructionCode)
+                    casez (instruction.instructionCode)
                         SB: signals.dmWriteType = WRITE_BYTE;
                         SH: signals.dmWriteType = WRITE_HALF_WORD;
                         SW: signals.dmWriteType = WRITE_WORD;
@@ -284,7 +284,7 @@ always_comb begin
             signals.aluMduOperand2From = ALU_MDU_OPERAND_FROM_REG_READ2;
             signals.mduUse = 1;
             signals.mduStart = 1;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 MULT:  signals.mduOperation = MDU_START_SIGNED_MUL;
                 MULTU: signals.mduOperation = MDU_START_UNSIGNED_MUL;
                 DIV:   signals.mduOperation = MDU_START_SIGNED_DIV;
@@ -293,7 +293,7 @@ always_comb begin
         end
         MFHI, MFLO: begin
             signals.mduUse = 1;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 MFHI: signals.mduOperation = MDU_READ_HI;
                 MFLO: signals.mduOperation = MDU_READ_LO;
             endcase
@@ -306,7 +306,7 @@ always_comb begin
             signals.regData1RequiredStage = EXECUATION;
             signals.aluMduOperand1From = ALU_MDU_OPERAND_FROM_REG_READ1;
             signals.mduUse = 1;
-            casex (instruction.instructionCode)
+            casez (instruction.instructionCode)
                 MTHI: signals.mduOperation = MDU_WRITE_HI;
                 MTLO: signals.mduOperation = MDU_WRITE_LO;
             endcase
