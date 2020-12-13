@@ -50,7 +50,7 @@ end
 // If we stalled for too long, the instruction (computed after current instruction's decode (aka. read general registers) stage)
 // will compulete execuation and its result will only available in general registers.
 // In this situation the data we request won't be available in any stage.
-// This happens on a lw -> lw/div -> add sequence.
+// This happens on a lw -> lw/[blocked MDU instruciton] -> add sequence.
 
 // We need to save the forwarded data ONCE it finishs stalling. This makes sure that we always have the correct data to forward.
 
